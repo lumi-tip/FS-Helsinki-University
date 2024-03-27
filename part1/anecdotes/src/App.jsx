@@ -13,7 +13,7 @@ const App = () => {
   ]
 
   
-  const [nvotes, setNvotes] = useState({})
+  const [nvotes, setNvotes] = useState({0:0})
   const [selected, setSelected] = useState(0)
   const [winner, setWinner] = useState(0)
 
@@ -24,29 +24,18 @@ const App = () => {
     while (randInt === selected){
       randInt = Math.floor(Math.random() * anecdotes.length)
     }
+    setNvotes({...nvotes, [randInt]: 0})
     setSelected(randInt)
   }
 
-  const anecdoteWinnerIndex = ()=>{
-    let flag = 0
-    let winner = 0
-    for(let vote in nvotes){
-      if(nvotes[vote] > flag){
-        flag = nvotes[vote]
-        winner = Number(vote)
-      }
-    }
-    console.log(winner)
-    setWinner(winner)
-  }
-
   const handleVote = () =>{
-    if (!nvotes[selected]) setNvotes({...nvotes, [selected]: 1})
-    else setNvotes({...nvotes, [selected]: nvotes[selected] + 1})
+    setNvotes({...nvotes, [selected]: nvotes[selected] + 1})
 
-    anecdoteWinnerIndex()
+    if(nvotes[selected] >= nvotes[winner]) setWinner(selected)
   }
 
+  console.log(nvotes[selected])
+  console.log(nvotes[winner])
   return (
     <div>
       <h1>Anecdote od the day</h1>
@@ -55,12 +44,14 @@ const App = () => {
       <button onClick={()=> handleVote()}>vote</button>
       <button onClick={()=> handleClick()}>next anecdote</button>
 
-      {nvotes[winner] &&
+      {nvotes[winner] ?
       <>
         <h2>Anecdote with most votes</h2>
         <p>{anecdotes[winner]}</p>
         <p>has {nvotes[winner]} votes</p>
       </>
+      :
+      ""
       }
     </div>
   )

@@ -1,16 +1,16 @@
 const Persons = ({persons, personsFiltered, handleDelete}) => {
-    const personsMap = persons.map(person => {
+    const personsMap = persons.map((person, index) => {
         return(
-            <div style={{display:"flex"}} key={person.id}>
+            <div style={{display:"flex"}} key={index}>
                 <p>{person.name} {person.number}</p>
                 <button onClick={() => handleDelete(person.id, person.name)}>delete</button>
             </div>
         )
     })
 
-    const personsFilterMap = personsFiltered.map(person => {
+    const personsFilterMap = personsFiltered.map((person, index) => {
         return(
-            <div style={{display:"flex"}} key={person.id}>
+            <div style={{display:"flex"}} key={index}>
                 <p>{person.name} {person.number}</p>
                 <button onClick={() => handleDelete(person.id, person.name)}>delete</button>
             </div>

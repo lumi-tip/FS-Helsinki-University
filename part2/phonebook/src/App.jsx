@@ -4,13 +4,16 @@ import Form from './components/Form'
 import Persons from './components/Persons'
 import axios from 'axios'
 import Request from './services/modules'
+import Message from './components/Message'
 
 const App = () => {
   const [persons, setPersons] = useState([])
   const [contactInfo, setContactInfo] = useState({name: "", number: ""})
   const [findName , setFindName ] = useState('')
   const [personsFilter, setPersonsFilter] = useState([])
-  
+  const [successMsg, setSuccessMsg] = useState(null)
+  const [errorMsg, setErrorMsg] = useState(null)
+
   //gets data in first render from db.json
   useEffect(() =>{
     Request.getInfo().then(res => setPersons(res.data))
@@ -24,15 +27,21 @@ const App = () => {
   //controlled input for search input
   const handleFind = ({target}) =>{
     setFindName(target.value)
-    const filteredPersons = persons.filter(e => e.name.toLowerCase().includes(target.value.toLowerCase()))
+    
     if(target.value.length <= 0) setPersonsFilter([])
-    else setPersonsFilter(filteredPersons)
+
+    else setPersonsFilter(persons.filter(person => {
+      return person.name.toLowerCase().includes(target.value.toLowerCase())
+    }))
   }
 
   //add or update contacts
   const handleSubmit = (event) => {
     event.preventDefault()
-    const newPerson = { name: contactInfo.name, number: contactInfo.number }
+    const newPerson = { 
+      name: contactInfo.name, 
+      number: contactInfo.number 
+    }
 
     if(contactInfo.name !== ""){
       const duplicatedPerson = persons.find(person => person.name == contactInfo.name)
@@ -50,8 +59,15 @@ const App = () => {
 
       else{
         setPersons(persons.concat(newPerson))
-        Request.addPerson(newPerson).then(res => console.log(res.data))
+        Request.addPerson(newPerson)
         setContactInfo({name: "", number: ""})
+
+        setSuccessMsg(`'${newPerson.name}' added`)
+
+        setTimeout(() => {
+          setSuccessMsg(null)
+        }, 5000)
+        
       } 
     }
   }
@@ -61,7 +77,22 @@ const App = () => {
     if(window.confirm(`Delete ${name}?`)){
       const notDeletedPersons = persons.filter(e=> e.id !== id)
       setPersons(notDeletedPersons)
-      Request.deletePerson(id)
+
+      Request.deletePerson(id).then(res => {
+        setSuccessMsg(`'${name}' deleted`)
+    
+        setTimeout(() => {
+          setSuccessMsg(null)
+        }, 5000)
+      })
+      .catch(error => {
+        setErrorMsg(`'${name}' was already removed from server`)
+
+        setTimeout(() => {
+          setErrorMsg(null)
+        }, 5000)
+      })
+      
   
       const findInPersonFilter = personsFilter.find(e => e.id === id)
       if(findInPersonFilter){
@@ -71,14 +102,35 @@ const App = () => {
   }
 
   const changeNumber = (updatedPerson, duplicatedPerson) =>{
-    const addPerson = {id: duplicatedPerson.id, name: duplicatedPerson.name, number: updatedPerson.number}
+    const addPerson = {
+      id: duplicatedPerson.id, 
+      name: duplicatedPerson.name, 
+      number: updatedPerson.number
+    }
+
     Request.updatePerson(addPerson).then(res => {
       setPersons(persons.map(person => person.id !== duplicatedPerson.id ? person : res.data))
+      setSuccessMsg(`'${duplicatedPerson.name}' updated`)
+
+      setTimeout(() => {
+        setSuccessMsg(null)
+      }, 5000)
+
+    })
+    .catch(error =>{
+      setErrorMsg(`'${duplicatedPerson.name}' was already removed from server`)
+
+      setTimeout(() => {
+        setErrorMsg(null)
+      }, 5000)
+
     })
   }
 
   return (
     <div>
+      {successMsg && <Message message={successMsg} success={true}/>}
+      {errorMsg && <Message message={errorMsg} success={null}/>}
       <h2>Phonebook</h2>
       <SearchBar value={findName} handleChange={handleFind}/>
       <h2>Add New</h2>
